@@ -1,6 +1,7 @@
+import re
 from pydantic import BaseModel, EmailStr, Field, field_validator
 class OrderCreate(BaseModel):
-    name: str = Field(..., min_length=1, description="Customer full name")
+    name: str = Field(..., min_length=2, max_length=50, description="Customer full name")
     email: EmailStr = Field(..., description="Valid email address")
     phone: str = Field(
         ...,
@@ -14,6 +15,11 @@ class OrderCreate(BaseModel):
         if not value.strip():
             raise ValueError("Field cannot be empty or contain only whitespace")
         return value.strip()
-
+    @field_validator("name")
+    @classmethod
+    def name_must_not_contain_numbers(cls, value: str) -> str:
+        if re.search(r'\d', value):
+            raise ValueError("Name cannot contain numbers")
+        return value
 class OrderResponse(BaseModel):
     message: str = "Your Order has been placed successfully."
